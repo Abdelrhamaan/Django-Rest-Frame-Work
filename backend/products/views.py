@@ -5,7 +5,9 @@ from .serializers import ProductsSerializer
 from  rest_framework.response import Response
 from rest_framework import generics, mixins, permissions, authentication
 from rest_framework.decorators import api_view
-from .permissions import IsEditorStaffPermission
+from api.permissions import IsEditorStaffPermission
+from api.mixins import StaffEditorMixinPermissions
+
 # Create your views here.
 
 
@@ -36,25 +38,25 @@ from .permissions import IsEditorStaffPermission
 #         serializer.save(content=content)
 # product_create_view = ProductCreateView.as_view()
 
-class ProductListCreateView(generics.ListCreateAPIView):
-    queryset = Products.objects.all()
-    serializer_class = ProductsSerializer
-    authentication_classes = [authentication.SessionAuthentication,
-                              authentication.TokenAuthentication] 
-    # permission_classes = [permissions.IsAuthenticated] # ---> 
-    # permission_classes = [permissions.IsAuthenticatedOrReadOnly] # ---> you can get put you cannot post
-    # permission_classes = [IsEditorStaffPermission] # ---> make custom permissions
-    permission_classes = [permissions.IsAdminUser, IsEditorStaffPermission] # ---> make custom permissions
-    def perform_create(self, serializer):
-        # serializer.save(user=self.request.user)
-        print(serializer)
-        print(serializer.validated_data)
-        title = serializer.validated_data.get('title')
-        content = serializer.validated_data.get('content')
-        if not content:
-            content = title
-        serializer.save(content=content)
-product_list_create_view = ProductListCreateView.as_view()
+# class ProductListCreateView(generics.ListCreateAPIView):
+#     queryset = Products.objects.all()
+#     serializer_class = ProductsSerializer
+#     authentication_classes = [authentication.SessionAuthentication,
+#                               authentication.TokenAuthentication] 
+#     # permission_classes = [permissions.IsAuthenticated] # ---> 
+#     # permission_classes = [permissions.IsAuthenticatedOrReadOnly] # ---> you can get put you cannot post
+#     # permission_classes = [IsEditorStaffPermission] # ---> make custom permissions
+#     permission_classes = [permissions.IsAdminUser, IsEditorStaffPermission] # ---> make custom permissions
+#     def perform_create(self, serializer):
+#         # serializer.save(user=self.request.user)
+#         print(serializer)
+#         print(serializer.validated_data)
+#         title = serializer.validated_data.get('title')
+#         content = serializer.validated_data.get('content')
+#         if not content:
+#             content = title
+#         serializer.save(content=content)
+# product_list_create_view = ProductListCreateView.as_view()
 
 
 class ProductMixinView(
@@ -146,3 +148,51 @@ class ProductDestroyView(generics.DestroyAPIView):
         super().preform_destroy(instance)
 
 product_destroy_view = ProductDestroyView.as_view()
+
+
+
+# ====================================================
+
+"""
+make mixin peermession class to inherit from it in all classes 
+instead of write this line     
+permission_classes = [permissions.IsAdminUser, IsEditorStaffPermission]
+in every class based view 
+"""
+
+class ProductListCreateView(
+            StaffEditorMixinPermissions,
+            generics.ListCreateAPIView):
+    queryset = Products.objects.all()
+    serializer_class = ProductsSerializer
+    lookup_field = 'pk'
+
+    
+    def perform_create(self, serializer):
+        # serializer.save(user=self.request.user)
+        print(serializer)
+        print(serializer.validated_data)
+        # this way better than overriding create and update methods in serializer it self
+        email = serializer.validated_data.pop('email', None)
+        title = serializer.validated_data.get('title')
+        content = serializer.validated_data.get('content')
+        if not content:
+            content = title
+        serializer.save(user=self.request.user, content=content)
+
+
+    def get_queryset(self, *args, **kwargs):
+        qs = super().get_queryset(*args, **kwargs)
+        request = self.request
+        user = request.user
+        if not user.is_authenticated:
+            return Products.objects.none()
+        return qs.filter(user=user)
+
+            
+product_list_create_view = ProductListCreateView.as_view()
+
+
+class ProductDetailView(generics.RetrieveAPIView):
+    queryset = Products.objects.all()
+    serializer_class = ProductsSerializer
