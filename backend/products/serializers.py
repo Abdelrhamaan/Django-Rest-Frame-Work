@@ -2,9 +2,22 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from .models import Products
+from api.serializiers import UserProductSerializer
 from .validators import validate_title, validate_price, unique_product_validator
 
+
+class ProductInlineSerializer(serializers.Serializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='product_detail',
+        lookup_field = 'pk'
+    )
+    title = serializers.CharField(read_only=True)
 class ProductsSerializer(serializers.ModelSerializer):
+    owner = UserProductSerializer(source='user', read_only=True)
+    related_data = ProductInlineSerializer(source='user.products_set.all',
+                                            read_only=True, 
+                                            many=True) # another way instead of nested nested serializers
+    user_data = serializers.SerializerMethodField(read_only=True)
     user_name = serializers.SerializerMethodField(read_only = True)
     my_discount = serializers.SerializerMethodField(read_only = True)
     edit_url = serializers.SerializerMethodField(read_only = True)
@@ -20,7 +33,8 @@ class ProductsSerializer(serializers.ModelSerializer):
         model = Products
         # fields = ['title', 'content', 'price', 'sale_price', 'nodiscount' ] 
         fields = [
-            # 'user',
+            'owner',
+            'user',
             'url', 
             'edit_url',
             'email',
@@ -30,7 +44,10 @@ class ProductsSerializer(serializers.ModelSerializer):
             'price', 
             'sale_price', 
             'my_discount',
-            'user_name' ] 
+            'user_name',
+            'user_data', 
+            # 'related_data'
+        ] 
     
     # def validate_title(self, value): # firstway to make custom validation  
     #     # qs = Products.objects.filter(title__exact=value)
@@ -38,7 +55,10 @@ class ProductsSerializer(serializers.ModelSerializer):
     #     if qs.exists():
     #         raise serializers.ValidationError(f"this {value} is already exists")
     #     return value
-
+    def get_user_data(self, obj):
+        return {
+            'user_name': obj.user.username
+        }
     def validate_price(self, value):
         price = value
         if price > 60:
