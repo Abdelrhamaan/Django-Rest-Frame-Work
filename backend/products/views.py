@@ -6,7 +6,7 @@ from  rest_framework.response import Response
 from rest_framework import generics, mixins, permissions, authentication
 from rest_framework.decorators import api_view
 from api.permissions import IsEditorStaffPermission
-from api.mixins import StaffEditorMixinPermissions
+from api.mixins import StaffEditorMixinPermissions, UserQuerySetMixin
 
 # Create your views here.
 
@@ -161,6 +161,7 @@ in every class based view
 """
 
 class ProductListCreateView(
+            UserQuerySetMixin,
             StaffEditorMixinPermissions,
             generics.ListCreateAPIView):
     queryset = Products.objects.all()
@@ -181,13 +182,13 @@ class ProductListCreateView(
         serializer.save(user=self.request.user, content=content)
 
 
-    def get_queryset(self, *args, **kwargs):
-        qs = super().get_queryset(*args, **kwargs)
-        request = self.request
-        user = request.user
-        if not user.is_authenticated:
-            return Products.objects.none()
-        return qs.filter(user=user)
+    # def get_queryset(self, *args, **kwargs):
+    #     qs = super().get_queryset(*args, **kwargs)
+    #     request = self.request
+    #     user = request.user
+    #     if not user.is_authenticated:
+    #         return Products.objects.none()
+    #     return qs.filter(user=user)
 
             
 product_list_create_view = ProductListCreateView.as_view()

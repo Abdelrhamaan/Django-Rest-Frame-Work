@@ -5,6 +5,7 @@ from .models import Products
 from .validators import validate_title, validate_price, unique_product_validator
 
 class ProductsSerializer(serializers.ModelSerializer):
+    user_name = serializers.SerializerMethodField(read_only = True)
     my_discount = serializers.SerializerMethodField(read_only = True)
     edit_url = serializers.SerializerMethodField(read_only = True)
     url = serializers.HyperlinkedIdentityField(
@@ -28,7 +29,8 @@ class ProductsSerializer(serializers.ModelSerializer):
             'content', 
             'price', 
             'sale_price', 
-            'my_discount' ] 
+            'my_discount',
+            'user_name' ] 
     
     # def validate_title(self, value): # firstway to make custom validation  
     #     # qs = Products.objects.filter(title__exact=value)
@@ -41,7 +43,10 @@ class ProductsSerializer(serializers.ModelSerializer):
         price = value
         if price > 60:
             raise serializers.ValidationError(f"{value} shouldn't be more than 60")
-        return value     
+        return value  
+
+    def get_user_name(self, obj):
+        return obj.user.username  
 
 
 
