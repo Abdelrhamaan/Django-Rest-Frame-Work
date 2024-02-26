@@ -14,12 +14,12 @@ class ProductInlineSerializer(serializers.Serializer):
     title = serializers.CharField(read_only=True)
 class ProductsSerializer(serializers.ModelSerializer):
     owner = UserProductSerializer(source='user', read_only=True)
-    related_data = ProductInlineSerializer(source='user.products_set.all',
-                                            read_only=True, 
-                                            many=True) # another way instead of nested nested serializers
-    user_data = serializers.SerializerMethodField(read_only=True)
-    user_name = serializers.SerializerMethodField(read_only = True)
-    my_discount = serializers.SerializerMethodField(read_only = True)
+    # related_data = ProductInlineSerializer(source='user.products_set.all',
+    #                                         read_only=True, 
+    #                                         many=True) # another way instead of nested nested serializers
+    # user_data = serializers.SerializerMethodField(read_only=True)
+    # user_name = serializers.SerializerMethodField(read_only = True)
+    # my_discount = serializers.SerializerMethodField(read_only = True)
     edit_url = serializers.SerializerMethodField(read_only = True)
     url = serializers.HyperlinkedIdentityField(
         view_name='product_detail',
@@ -43,9 +43,10 @@ class ProductsSerializer(serializers.ModelSerializer):
             'content', 
             'price', 
             'sale_price', 
-            'my_discount',
-            'user_name',
-            'user_data', 
+            'public',
+            # 'my_discount',
+            # 'user_name',
+            # 'user_data', 
             # 'related_data'
         ] 
     
