@@ -42,7 +42,9 @@ class Products(models.Model):
     def sale_price(self):
         return float(self.price) * 0.8
     
-    def get_random_tag(self):
-        return random.choice(TAG_MODEL_VALUES)
+    def get_tags_list(self):
+        return [random.choice(TAG_MODEL_VALUES)]
+    
+    
     def nodiscount(self):
         return "no discount for this transaction"

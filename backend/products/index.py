@@ -4,7 +4,7 @@ from .models import Products
 
 @register(Products) # == admin.site.register(Products, ProductsAdmin)  
 class ProductIndex(AlgoliaIndex):
-    should_index = 'is_public'
+    # should_index = 'is_public'
     fields = [
         'title',
         'content',
@@ -12,4 +12,8 @@ class ProductIndex(AlgoliaIndex):
         'user',
         'public',
     ]
-    tags = 'get_random_tag'
+    settings = {
+        'searchableAttributes': ['title', 'content'],
+        'attributesForFaceting' : ['user', 'public'],
+    }
+    tags = 'get_tags_list'
