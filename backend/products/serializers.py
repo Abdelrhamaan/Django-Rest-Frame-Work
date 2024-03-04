@@ -28,6 +28,7 @@ class ProductsSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(write_only = True)
     title = serializers.CharField(validators=[validate_title, 
                                               unique_product_validator]) # second way  to make custom validation
+    body = serializers.CharField(source='content')
     # price = serializers.DecimalField(max_digits=4, decimal_places=2,validators=[validate_price])
     class Meta:
         model = Products
@@ -37,10 +38,13 @@ class ProductsSerializer(serializers.ModelSerializer):
             'user',
             'url', 
             'edit_url',
+            'endpoint',
             'email',
             'pk', 
             'title', 
             'content', 
+            'body', 
+            'path',
             'price', 
             'sale_price', 
             'public',
