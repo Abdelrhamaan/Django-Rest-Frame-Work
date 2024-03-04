@@ -1,8 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Q
+import random
 # Create your models here.
 
+
+
+TAG_MODEL_VALUES = ['cars', 'electronics', 'fruits', 'food']
 class ProductQuerySet(models.QuerySet):
     def is_puplic(self):
         return self.filter(public=True)
@@ -31,9 +35,14 @@ class Products(models.Model):
     public = models.BooleanField(default=True)
     objects = ProductManager()
 
+    def is_public(self):
+        return self.public
+
     @property
     def sale_price(self):
         return float(self.price) * 0.8
     
+    def get_random_tag(self):
+        return random.choice(TAG_MODEL_VALUES)
     def nodiscount(self):
         return "no discount for this transaction"
